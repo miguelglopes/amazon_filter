@@ -116,15 +116,15 @@ function applyFilter(
     return parseFloat(cleanedString);
   }
 
-  // 1) Collect all product divs each time (in case Amazon has re-rendered)
+  // Collect all product divs each time (in case Amazon has re-rendered)
   const productDivs = document.querySelectorAll('[data-component-type="s-search-result"]');
 
-  // 2) Reset them all to visible
+  // Reset them all to visible
   for (let div of productDivs) {
     div.style.display = '';
   }
 
-  // 3) Apply filter logic by hiding (instead of removing)
+  // Apply filter logic by hiding
   for (let div of productDivs) {
     const deliveryDiv = div.querySelector('[data-cy="delivery-recipe"]');
     const priceDiv = div.querySelector('[data-cy="price-recipe"]');
