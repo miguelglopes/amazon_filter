@@ -1,7 +1,3 @@
-// This variable will hold the original, complete list of product divs.
-let originalProductDivs = null;
-
-// Run as soon as DOM loads
 document.addEventListener('DOMContentLoaded', function () {
   const starRatingSlider = document.getElementById('starRating');
   const starRatingNumber = document.getElementById('starRatingNumber');
@@ -77,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-// Updated applyFilter function
+
 function applyFilter(
   starRatingThreshold,
   reviewNumberThreshold,
@@ -120,28 +116,23 @@ function applyFilter(
     return parseFloat(cleanedString);
   }
 
-  // If we haven't already stored the original product list, do so now:
-  if (!window.originalProductDivs) {
-    window.originalProductDivs = Array.from(
-      document.querySelectorAll('[data-component-type="s-search-result"]')
-    );
-  }
+  // 1) Collect all product divs each time (in case Amazon has re-rendered)
+  const productDivs = document.querySelectorAll('[data-component-type="s-search-result"]');
 
-  // Show them all (reset to visible) before applying filter
-  for (const div of window.originalProductDivs) {
+  // 2) Reset them all to visible
+  for (let div of productDivs) {
     div.style.display = '';
   }
 
-  // Now apply filter logic
-  for (let div of window.originalProductDivs) {
-    // Identify relevant sub-blocks
+  // 3) Apply filter logic by hiding (instead of removing)
+  for (let div of productDivs) {
     const deliveryDiv = div.querySelector('[data-cy="delivery-recipe"]');
     const priceDiv = div.querySelector('[data-cy="price-recipe"]');
     const starReviewDiv = div.querySelector(
       '.a-section.a-spacing-none.a-spacing-top-micro'
     );
 
-    // Initialize default values
+    // Default values
     let starRating = 0;
     let reviewCount = 0;
     let price = 0;
@@ -153,24 +144,17 @@ function applyFilter(
       const primeEl = deliveryDiv.querySelector('[aria-label="Amazon Prime"]');
       prime = !!primeEl;
 
-      // In Spanish, the attribute might read "Entrega GRATIS el ... para clientes de Prime"
-      const freeDeliveryEl = deliveryDiv.querySelector(
-        '[aria-label*="Entrega GRATIS"]'
-      );
+      const freeDeliveryEl = deliveryDiv.querySelector('[aria-label*="Entrega GRATIS"]');
       freeDelivery = !!freeDeliveryEl;
     }
 
     // Extract rating & review count
     if (starReviewDiv) {
-      // Typically: <i class="a-icon a-icon-star-mini"><span class="a-icon-alt">4,6 de 5 estrellas</span></i>
-      const starEl = starReviewDiv.querySelector(
-        'i.a-icon-star-mini span.a-icon-alt'
-      );
+      const starEl = starReviewDiv.querySelector('i.a-icon-star-mini span.a-icon-alt');
       if (starEl) {
         starRating = parseStringAsNumber(starEl.textContent);
       }
 
-      // Typically: <span class="a-size-small puis-normal-weight-text s-underline-text">(3.002)</span>
       const reviewEl = starReviewDiv.querySelector('span.s-underline-text');
       if (reviewEl) {
         reviewCount = parseStringAsNumber(reviewEl.textContent);
@@ -185,8 +169,7 @@ function applyFilter(
       }
     }
 
-    // Now apply filtering step by step:
-    // If any condition fails, hide it (instead of removing).
+    // Finally, filter
     if (primeOnly && !prime) {
       div.style.display = 'none';
       continue;
