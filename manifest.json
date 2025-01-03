@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Star Rating Filter",
+  "version": "1.0",
+  "description": "Filters divs based on star ratings.",
+  "permissions": ["scripting", "activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
