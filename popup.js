@@ -1,3 +1,7 @@
+// This variable will hold the original, complete list of product divs.
+let originalProductDivs = null;
+
+// Run as soon as DOM loads
 document.addEventListener('DOMContentLoaded', function () {
   const starRatingSlider = document.getElementById('starRating');
   const starRatingNumber = document.getElementById('starRatingNumber');
@@ -11,12 +15,14 @@ document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.sync.get(
     ['starRating', 'reviewNumber', 'maxPrice', 'freeDelivery', 'prime'],
     function (items) {
-      starRatingSlider.value = items.starRating || starRatingNumber.value;
-      starRatingNumber.value = items.starRating || starRatingNumber.value;
-      reviewNumber.value = items.reviewNumber || reviewNumber.value;
-      maxPriceNumber.value = items.maxPrice || maxPriceNumber.value;
-      freeDeliveryOnlyCheckbox.checked = items.freeDelivery ?? freeDeliveryOnlyCheckbox.checked;
-      primeOnlyCheckbox.checked = items.prime ?? primeOnlyCheckbox.checked;
+      starRatingSlider.value = items.starRating ?? starRatingNumber.value;
+      starRatingNumber.value = items.starRating ?? starRatingNumber.value;
+      reviewNumber.value = items.reviewNumber ?? reviewNumber.value;
+      maxPriceNumber.value = items.maxPrice ?? maxPriceNumber.value;
+      freeDeliveryOnlyCheckbox.checked = 
+        items.freeDelivery ?? freeDeliveryOnlyCheckbox.checked;
+      primeOnlyCheckbox.checked = 
+        items.prime ?? primeOnlyCheckbox.checked;
     }
   );
 
@@ -114,12 +120,20 @@ function applyFilter(
     return parseFloat(cleanedString);
   }
 
-  // Get every product card
-  const productDivs = document.querySelectorAll(
-    '[data-component-type="s-search-result"]'
-  );
+  // If we haven't already stored the original product list, do so now:
+  if (!window.originalProductDivs) {
+    window.originalProductDivs = Array.from(
+      document.querySelectorAll('[data-component-type="s-search-result"]')
+    );
+  }
 
-  for (let div of productDivs) {
+  // Show them all (reset to visible) before applying filter
+  for (const div of window.originalProductDivs) {
+    div.style.display = '';
+  }
+
+  // Now apply filter logic
+  for (let div of window.originalProductDivs) {
     // Identify relevant sub-blocks
     const deliveryDiv = div.querySelector('[data-cy="delivery-recipe"]');
     const priceDiv = div.querySelector('[data-cy="price-recipe"]');
@@ -171,25 +185,26 @@ function applyFilter(
       }
     }
 
-    // Now apply filtering step by step
+    // Now apply filtering step by step:
+    // If any condition fails, hide it (instead of removing).
     if (primeOnly && !prime) {
-      div.remove();
+      div.style.display = 'none';
       continue;
     }
     if (freeDeliveryOnly && !freeDelivery) {
-      div.remove();
+      div.style.display = 'none';
       continue;
     }
     if (starRating < starRatingThreshold) {
-      div.remove();
+      div.style.display = 'none';
       continue;
     }
     if (reviewCount < reviewNumberThreshold) {
-      div.remove();
+      div.style.display = 'none';
       continue;
     }
     if (price > priceThreshold) {
-      div.remove();
+      div.style.display = 'none';
       continue;
     }
   }
